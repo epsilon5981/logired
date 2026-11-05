@@ -1,6 +1,6 @@
 // =====================================================================
 // CAPA DE PRESENTACIÓN (controlador)
-// Traduce HTTP <-> servicio: lee la petición (params, body),
+// Traduce HTTP <-> servicio: lee la petición (params, query, body),
 // llama al servicio y arma la respuesta (código de estado + JSON).
 // =====================================================================
 const service = require('../services/clientes.service');
@@ -12,9 +12,16 @@ function leerId(req) {
   return id;
 }
 
-// GET /clientes
+// GET /clientes  ·  GET /clientes?ciudad=Cali  ·  GET /clientes?ids=1,3,8
 async function listar(req, res) {
-  const clientes = await service.listar();
+  const filtros = { ciudad: req.query.ciudad };
+  if (req.query.ids) {                                  // ?ids=1,3,8 -> [1, 3, 8]
+    filtros.ids = String(req.query.ids).split(',').map(Number);
+    if (filtros.ids.some((id) => !Number.isInteger(id) || id <= 0)) {
+      throw new HttpError(400, 'ids debe ser una lista de enteros separados por comas');
+    }
+  }
+  const clientes = await service.listar(filtros);
   res.status(200).json(clientes);
 }
 
@@ -30,4 +37,16 @@ async function crear(req, res) {
   res.status(201).location(`${req.baseUrl}/${nuevo.id}`).json(nuevo);
 }
 
-module.exports = { listar, obtener, crear };
+// PUT /clientes/:id
+async function actualizar(req, res) {
+  const actualizado = await service.actualizar(leerId(req), req.body);
+  res.status(200).json(actualizado);
+}
+
+// DELETE /clientes/:id
+async function eliminar(req, res) {
+  await service.eliminar(leerId(req));
+  res.status(204).end();                                // 204 No Content: éxito, sin cuerpo
+}
+
+module.exports = { listar, obtener, crear, actualizar, eliminar };

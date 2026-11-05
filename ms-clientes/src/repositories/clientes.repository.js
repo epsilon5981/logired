@@ -1,8 +1,7 @@
 // =====================================================================
 // CAPA DE ACCESO A DATOS (repositorio)
 // Única capa que sabe DÓNDE se guardan los datos.
-// Versión del Taller 1: datos en memoria (se pierden al reiniciar).
-// En el Taller 2 se reemplaza por MySQL SIN tocar las otras capas.
+// Versión en memoria (se pierden al reiniciar).
 // Todas las funciones son async (devuelven promesas) para que el cambio
 // a una base de datos real no obligue a modificar la capa de servicio.
 // =====================================================================
@@ -13,8 +12,16 @@ const clientes = [
 ];
 let siguienteId = 4;
 
-async function findAll() {
-  return clientes;
+async function findAll(filtros = {}) {
+  let resultado = clientes;
+  if (filtros.ciudad) {
+    const ciudad = filtros.ciudad.toLowerCase();
+    resultado = resultado.filter((c) => c.ciudad.toLowerCase() === ciudad);
+  }
+  if (filtros.ids) {
+    resultado = resultado.filter((c) => filtros.ids.includes(c.id));
+  }
+  return resultado;
 }
 
 async function findById(id) {
@@ -31,4 +38,20 @@ async function create(cliente) {
   return nuevo;
 }
 
-module.exports = { findAll, findById, findByNit, create };
+// Reemplaza los datos del cliente; devuelve el cliente actualizado o null si no existe
+async function update(id, cliente) {
+  const i = clientes.findIndex((c) => c.id === id);
+  if (i === -1) return null;
+  clientes[i] = { id, ...cliente };
+  return clientes[i];
+}
+
+// Elimina el cliente; devuelve true si existía
+async function remove(id) {
+  const i = clientes.findIndex((c) => c.id === id);
+  if (i === -1) return false;
+  clientes.splice(i, 1);
+  return true;
+}
+
+module.exports = { findAll, findById, findByNit, create, update, remove };

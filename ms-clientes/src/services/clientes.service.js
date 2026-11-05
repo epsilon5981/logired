@@ -7,8 +7,8 @@ const repo = require('../repositories/clientes.repository');
 const { validarCliente, construirCliente } = require('../models/cliente');
 const HttpError = require('../utils/http-error');
 
-async function listar() {
-  return repo.findAll();
+async function listar(filtros = {}) {
+  return repo.findAll(filtros);
 }
 
 async function obtener(id) {
@@ -32,4 +32,26 @@ async function crear(datos) {
   return repo.create(cliente);
 }
 
-module.exports = { listar, obtener, crear };
+async function actualizar(id, datos) {
+  const errores = validarCliente(datos);
+  if (errores.length > 0) throw new HttpError(400, 'Datos inválidos', errores);
+
+  await obtener(id);                                   // 404 si no existe
+
+  const cliente = construirCliente(datos);
+
+  // Misma regla de negocio: el NIT nuevo no puede pertenecer a OTRO cliente
+  const otro = await repo.findByNit(cliente.nit);
+  if (otro && otro.id !== id) {
+    throw new HttpError(409, `Ya existe un cliente con el NIT ${cliente.nit}`);
+  }
+
+  return repo.update(id, cliente);
+}
+
+async function eliminar(id) {
+  const eliminado = await repo.remove(id);
+  if (!eliminado) throw new HttpError(404, `No existe el cliente con id ${id}`);
+}
+
+module.exports = { listar, obtener, crear, actualizar, eliminar };
