@@ -13,7 +13,7 @@
 // =====================================================================
 
 // Estados por los que pasa un envío. Al crearlo siempre queda "registrado";
-// los cambios de estado llegan con PUT en el Taller 2.
+// los cambios de estado llegan con PUT (que debe traer el estado).
 const ESTADOS = ['registrado', 'en_transito', 'entregado', 'devuelto'];
 
 // Número de guía de LogiRed: LR-<año>-<6 dígitos>, ej. LR-2026-000123
@@ -26,8 +26,9 @@ function textoNoVacio(valor) {
   return typeof valor === 'string' && valor.trim() !== '';
 }
 
-// Devuelve una lista de errores de validación (vacía si todo está bien)
-function validarEnvio(datos) {
+// Devuelve una lista de errores de validación (vacía si todo está bien).
+// Con { actualizar: true } (PUT) el estado también es obligatorio.
+function validarEnvio(datos, { actualizar = false } = {}) {
   const errores = [];
   if (!datos || typeof datos !== 'object') {
     return ['Se esperaba un objeto JSON con los datos del envío'];
@@ -47,19 +48,25 @@ function validarEnvio(datos) {
   if (!textoNoVacio(datos.direccion_destino)) {
     errores.push('direccion_destino es obligatoria');
   }
+  if (actualizar && !ESTADOS.includes(datos.estado)) {
+    errores.push(`estado es obligatorio y debe ser uno de: ${ESTADOS.join(', ')}`);
+  }
   return errores;
 }
 
-// Construye un envío "limpio" solo con los campos que envía el cliente.
-// estado y fecha_registro NO se reciben: los asigna la capa de servicio.
-function construirEnvio(datos) {
-  return {
+// Construye un envío "limpio" solo con los campos permitidos.
+// Al crear, estado y fecha_registro NO se reciben: los asigna la capa de servicio.
+// Al actualizar se recibe el estado; fecha_registro nunca se modifica.
+function construirEnvio(datos, { actualizar = false } = {}) {
+  const envio = {
     numero_guia: datos.numero_guia.trim().toUpperCase(),
     cliente_id: datos.cliente_id,
     peso_kg: datos.peso_kg,
     ciudad_destino: datos.ciudad_destino.trim(),
     direccion_destino: datos.direccion_destino.trim(),
   };
+  if (actualizar) envio.estado = datos.estado;
+  return envio;
 }
 
 module.exports = { ESTADOS, validarEnvio, construirEnvio };

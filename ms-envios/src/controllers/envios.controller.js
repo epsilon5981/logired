@@ -1,6 +1,6 @@
 // =====================================================================
 // CAPA DE PRESENTACIÓN (controlador)
-// Traduce HTTP <-> servicio: lee la petición (params, body),
+// Traduce HTTP <-> servicio: lee la petición (params, query, body),
 // llama al servicio y arma la respuesta (código de estado + JSON).
 // =====================================================================
 const service = require('../services/envios.service');
@@ -12,9 +12,16 @@ function leerId(req) {
   return id;
 }
 
-// GET /envios
+// GET /envios  ·  GET /envios?estado=en_transito  ·  GET /envios?cliente_id=1
 async function listar(req, res) {
-  const envios = await service.listar();
+  const filtros = { estado: req.query.estado };
+  if (req.query.cliente_id !== undefined) {
+    filtros.cliente_id = Number(req.query.cliente_id);
+    if (!Number.isInteger(filtros.cliente_id) || filtros.cliente_id <= 0) {
+      throw new HttpError(400, 'cliente_id debe ser un entero positivo');
+    }
+  }
+  const envios = await service.listar(filtros);
   res.status(200).json(envios);
 }
 
@@ -30,4 +37,16 @@ async function crear(req, res) {
   res.status(201).location(`${req.baseUrl}/${nuevo.id}`).json(nuevo);
 }
 
-module.exports = { listar, obtener, crear };
+// PUT /envios/:id
+async function actualizar(req, res) {
+  const actualizado = await service.actualizar(leerId(req), req.body);
+  res.status(200).json(actualizado);
+}
+
+// DELETE /envios/:id
+async function eliminar(req, res) {
+  await service.eliminar(leerId(req));
+  res.status(204).end();                                // 204 No Content: éxito, sin cuerpo
+}
+
+module.exports = { listar, obtener, crear, actualizar, eliminar };
