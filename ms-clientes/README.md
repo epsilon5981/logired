@@ -36,7 +36,7 @@ copy .env.example .env      # en Linux/Mac: cp .env.example .env
 npm run dev
 ```
 
-En el `.env` ponga la clave de MySQL:
+En el `.env` ponga la clave de MySQL y la JWT_SECRET del grupo:
 
 ```
 PORT=3002
@@ -46,6 +46,7 @@ DB_PORT=3306
 DB_NAME=clientes_db
 DB_USER=clientes_user
 DB_PASSWORD=<la clave que eligió>
+JWT_SECRET=<la frase secreta del grupo>
 ```
 
 Debe ver en la terminal: `ms-clientes escuchando en http://127.0.0.1:3002`.
@@ -120,6 +121,14 @@ Respuesta `201 Created` con `Location: /clientes/4`:
 ]
 ```
 
+## Seguridad
+
+Todas las rutas exigen un token JWT emitido por ms-usuarios (`POST /usuarios/login`), enviado en la cabecera `Authorization: Bearer <token>`. El microservicio verifica la firma con `JWT_SECRET`, sin consultar a ms-usuarios.
+
+| Operación | Roles permitidos | Sin token o token inválido | Rol sin permiso |
+|---|---|---|---|
+| GET (listar, filtrar, obtener) | administrador, despacho, flota | 401 | — |
+| POST, PUT, DELETE | administrador, despacho | 401 | 403 |
 ## Relaciones
 
 ms-clientes no guarda referencias a otros microservicios. Es **consultado** por ms-envios:
