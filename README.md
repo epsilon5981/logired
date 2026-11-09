@@ -5,39 +5,34 @@ Aplicación web de LogiRed S.A.S., empresa de logística con sedes en Cali (prin
 
 ## Integrantes
 
-| Integrante | Usuario de GitHub | Rol en la semana 1 | Carpetas a cargo |
-|---|---|---|---|
-| Hernán David Gutiérrez Alarcón | `<usuario-github>` | Coordinador, Arquitecto, Integrador, Documentador y Relator (grupo de un integrante) | ms-clientes, ms-envios |
+| Integrante | Usuario de GitHub | Carpetas a cargo |
+|---|---|---|
+| Hernán David Gutiérrez Alarcón | epsilon5981 | ms-clientes, ms-envios, frontend |
+
+Grupo de un solo integrante: ejerce todos los roles (Coordinador, Arquitecto, Integrador, Documentador y Relator).
 
 ## Microservicios
 
-| Microservicio | Entidad | Responsable | Puerto | Atributos | Referencia a (id) |
+| Microservicio | Entidad | Responsable | Puerto | Base de datos | Referencia a (id) |
 |---|---|---|---|---|---|
-| ms-usuarios | Usuario | Docente | 3001 | id, nombre, email, rol, activo | — |
-| ms-clientes | Cliente | Hernán David Gutiérrez | 3002 | id, nombre, nit, email, telefono, ciudad, direccion, activo | — |
-| ms-envios | Envío | Hernán David Gutiérrez | 3003 | id, numero_guia, cliente_id, peso_kg, ciudad_destino, direccion_destino, estado, fecha_registro | cliente_id → ms-clientes |
+| ms-usuarios | Usuario | Docente | 3001 | usuarios_db | — |
+| ms-clientes | Cliente | Hernán David Gutiérrez | 3002 | clientes_db | — |
+| ms-envios | Envío | Hernán David Gutiérrez | 3003 | envios_db | cliente_id → ms-clientes |
 
-Roles de la empresa: `administrador`, `despacho`, `flota`.
+Roles de la empresa: `administrador`, `despacho`, `flota`. Cada microservicio documenta su contrato, cómo ejecutarlo y sus relaciones en su propio `README.md`.
 
 ## Estructura
 
 ```
 ├── README.md
 ├── ms-usuarios/     ← entregado por la docente (no se modifica)
-├── ms-clientes/     ← Taller 1 y 2
-├── ms-envios/       ← Taller 1 y 2
-├── postman/         ← colección de pruebas
-├── frontend/        ← interfaz web (desde la semana 2)
+├── ms-clientes/     ← src/ (capas + middleware), db/schema.sql, docs/ (Postman)
+├── ms-envios/       ← src/ (capas + middleware + clients/), db/schema.sql, docs/ (Postman)
+├── frontend/        ← interfaz web (HTML, CSS y JavaScript)
+├── postman/         ← colección del Taller 1
 └── deploy/          ← archivos de despliegue (Taller 3)
 ```
 
-## Cómo ejecutar un microservicio
+## Cómo ejecutar todo en un PC
 
-```
-cd ms-clientes
-npm install
-copy .env.example .env
-npm run dev
-```
-
-Requisitos: Node.js LTS 22.9 o superior. No se suben `node_modules/` ni `.env`.
+Requisitos: Node.js LTS 22.9 o superior y MySQL Server 8. Cada microservicio se arranca en su propia terminal siguiendo su README (crear la base con `db/schema.sql`, crear el `.env` con la misma `JWT_SECRET` y `npm run dev`). No se suben `node_modules/` ni `.env`.
