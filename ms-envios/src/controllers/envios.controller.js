@@ -2,6 +2,7 @@
 // CAPA DE PRESENTACIÓN (controlador)
 // Traduce HTTP <-> servicio: lee la petición (params, query, body),
 // llama al servicio y arma la respuesta (código de estado + JSON).
+// Le pasa al servicio el token (cabecera Authorization) como un dato más.
 // =====================================================================
 const service = require('../services/envios.service');
 const HttpError = require('../utils/http-error');
@@ -21,25 +22,25 @@ async function listar(req, res) {
       throw new HttpError(400, 'cliente_id debe ser un entero positivo');
     }
   }
-  const envios = await service.listar(filtros);
+  const envios = await service.listar(filtros, req.headers.authorization);
   res.status(200).json(envios);
 }
 
 // GET /envios/:id
 async function obtener(req, res) {
-  const envio = await service.obtener(leerId(req));
+  const envio = await service.obtener(leerId(req), req.headers.authorization);
   res.status(200).json(envio);
 }
 
 // POST /envios
 async function crear(req, res) {
-  const nuevo = await service.crear(req.body);
+  const nuevo = await service.crear(req.body, req.headers.authorization);
   res.status(201).location(`${req.baseUrl}/${nuevo.id}`).json(nuevo);
 }
 
 // PUT /envios/:id
 async function actualizar(req, res) {
-  const actualizado = await service.actualizar(leerId(req), req.body);
+  const actualizado = await service.actualizar(leerId(req), req.body, req.headers.authorization);
   res.status(200).json(actualizado);
 }
 

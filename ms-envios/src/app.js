@@ -10,6 +10,17 @@ const app = express();
 // Middleware: convierte el cuerpo JSON de la petición en un objeto (req.body)
 app.use(express.json());
 
+// Middleware: registro en la terminal de cada petición que llega (método, URI,
+// código de respuesta y tiempo). Permite ver las peticiones de otros microservicios.
+app.use((req, res, next) => {
+  const inicio = Date.now();
+  res.on('finish', () => {
+    const hora = new Date().toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' });
+    console.log(`[${hora}] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - inicio} ms)`);
+  });
+  next();
+});
+
 // Endpoint de salud: permite verificar que el microservicio está vivo
 app.get('/health', (req, res) => {
   res.json({ servicio: 'ms-envios', estado: 'ok' });

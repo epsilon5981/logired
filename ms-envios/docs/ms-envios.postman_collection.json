@@ -459,6 +459,101 @@
           }
         }
       ]
+    },
+    {
+      "name": "Relaciones (casos 19 a 24)",
+      "item": [
+        {
+          "name": "19. Crear con cliente válido (201 + cliente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/envios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero_guia\": \"LR-2026-000300\",\n  \"cliente_id\": 2,\n  \"peso_kg\": 7,\n  \"ciudad_destino\": \"Cali\",\n  \"direccion_destino\": \"Calle 9 # 1-2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "20. Crear con cliente_id que no existe (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/envios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero_guia\": \"LR-2026-000301\",\n  \"cliente_id\": 999,\n  \"peso_kg\": 7,\n  \"ciudad_destino\": \"Cali\",\n  \"direccion_destino\": \"Calle 9 # 1-2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "21. Obtener por id (200 + cliente)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/envios/3"
+          }
+        },
+        {
+          "name": "22. Listar: ms-clientes recibe UNA petición ?ids= (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/envios"
+          }
+        },
+        {
+          "name": "23. Listar con ms-clientes DETENIDO (200, cliente null + aviso)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/envios"
+          }
+        },
+        {
+          "name": "24. Crear con ms-clientes DETENIDO (503)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/envios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero_guia\": \"LR-2026-000302\",\n  \"cliente_id\": 1,\n  \"peso_kg\": 3,\n  \"ciudad_destino\": \"Bogotá\",\n  \"direccion_destino\": \"Calle 26 # 59-41\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [

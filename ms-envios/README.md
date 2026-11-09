@@ -11,7 +11,7 @@ Microservicio de **envíos** de LogiRed S.A.S. Node.js + Express organizado en c
 
 ## Cómo ejecutarlo
 
-Requisitos: Node.js LTS 22.9 o superior y MySQL Server 8 (con MySQL Workbench o la consola `mysql`).
+Requisitos: Node.js LTS 22.9 o superior y MySQL Server 8 (con MySQL Workbench o la consola `mysql`). Para probar las relaciones, ms-clientes debe estar corriendo (ver su README).
 
 **1. Crear la base de datos y su usuario** (en Workbench o en la consola, conectado como `root`):
 
@@ -36,7 +36,7 @@ copy .env.example .env      # en Linux/Mac: cp .env.example .env
 npm run dev
 ```
 
-En el `.env` ponga la clave de MySQL:
+En el `.env` ponga la clave de MySQL y la JWT_SECRET del grupo:
 
 ```
 PORT=3003
@@ -46,6 +46,8 @@ DB_PORT=3306
 DB_NAME=envios_db
 DB_USER=envios_user
 DB_PASSWORD=<la clave que eligió>
+JWT_SECRET=<la frase secreta del grupo>
+CLIENTES_URL=http://127.0.0.1:3002
 ```
 
 Debe ver en la terminal: `ms-envios escuchando en http://127.0.0.1:3003`.
@@ -87,8 +89,8 @@ Así responde `GET /envios/3`. `cliente_id` es lo único que se guarda en envios
 | Listar | GET | /envios | — | 200 + arreglo | — |
 | Filtrar | GET | /envios?estado=en_transito · /envios?cliente_id=1 | — | 200 + arreglo filtrado | 400 estado o cliente_id inválido |
 | Obtener | GET | /envios/:id | — | 200 + objeto | 400 id inválido · 404 |
-| Crear | POST | /envios | JSON sin id, estado ni fecha | 201 + objeto + cabecera Location | 400 · 409 |
-| Actualizar | PUT | /envios/:id | JSON completo sin id (incluye estado) | 200 + objeto actualizado | 400 · 404 · 409 |
+| Crear | POST | /envios | JSON sin id, estado ni fecha | 201 + objeto + cabecera Location | 400 · 409 · 503 |
+| Actualizar | PUT | /envios/:id | JSON completo sin id (incluye estado) | 200 + objeto actualizado | 400 · 404 · 409 · 503 |
 | Eliminar | DELETE | /envios/:id | — | 204 sin cuerpo | 400 · 404 |
 
 ms-envios no ofrece consulta por lotes (`?ids=`) porque ningún otro microservicio lo consulta. Todos los errores responden con el formato `{"error": "...", "detalles": [...]}`.
@@ -119,9 +121,17 @@ Respuesta `201 Created` con `Location: /envios/4`:
 ]
 ```
 
+## Seguridad
+
+Todas las rutas exigen un token JWT emitido por ms-usuarios (`POST /usuarios/login`), enviado en la cabecera `Authorization: Bearer <token>`. El microservicio verifica la firma con `JWT_SECRET`, sin consultar a ms-usuarios.
+
+| Operación | Roles permitidos | Sin token o token inválido | Rol sin permiso |
+|---|---|---|---|
+| GET (listar, filtrar, obtener) | administrador, despacho, flota | 401 | — |
+| POST, PUT, DELETE | administrador, despacho | 401 | 403 |
 ## Relaciones
 
-ms-envios **guarda la referencia** `cliente_id` y consultará a ms-clientes (se implementa en la semana 2, reenviando el token del usuario):
+ms-envios **guarda la referencia** `cliente_id` y consulta a ms-clientes (reenviando el token del usuario):
 
 | Atributo | Microservicio consultado | Para validar (al crear y actualizar) | Para componer (al consultar) | Datos que usa |
 |---|---|---|---|---|
