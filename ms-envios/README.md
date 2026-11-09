@@ -1,9 +1,34 @@
-# ms-envios · LogiRed (Taller 1, Módulo 3)
+# ms-envios · LogiRed
 
-Microservicio de **envíos** de LogiRed con Node.js + Express organizado en capas.
-Versión del Taller 1: datos en memoria y tres operaciones (listar, obtener por id, crear).
+Microservicio de **envíos** de LogiRed S.A.S. Node.js + Express organizado en capas, con persistencia en MySQL. Cada envío guarda la referencia `cliente_id` a ms-clientes.
+
+| | |
+|---|---|
+| Entidad | Envío |
+| Responsable | Hernán David Gutiérrez Alarcón |
+| Puerto | 3003 |
+| Base de datos | envios_db (usuario envios_user) |
 
 ## Cómo ejecutarlo
+
+Requisitos: Node.js LTS 22.9 o superior y MySQL Server 8 (con MySQL Workbench o la consola `mysql`).
+
+**1. Crear la base de datos y su usuario** (en Workbench o en la consola, conectado como `root`):
+
+```sql
+CREATE DATABASE envios_db;
+CREATE USER 'envios_user'@'localhost' IDENTIFIED BY '<una-clave-segura>';
+GRANT ALL PRIVILEGES ON envios_db.* TO 'envios_user'@'localhost';
+```
+
+**2. Crear la tabla y los registros iniciales** con `db/schema.sql`. En Workbench: *File → Open SQL Script*, conectado como `envios_user`, y ejecutar. O desde la consola, en la carpeta del microservicio:
+
+```
+mysql -u envios_user -p envios_db
+mysql> SOURCE db/schema.sql;
+```
+
+**3. Configurar y arrancar:**
 
 ```
 npm install
@@ -11,24 +36,23 @@ copy .env.example .env      # en Linux/Mac: cp .env.example .env
 npm run dev
 ```
 
-Prueben: http://localhost:3003/health y http://localhost:3003/envios
+En el `.env` ponga la clave de MySQL:
 
-## Capas
+```
+PORT=3003
+HOST=127.0.0.1
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=envios_db
+DB_USER=envios_user
+DB_PASSWORD=<la clave que eligió>
+```
 
-| Archivo | Capa | Responsabilidad |
-|---|---|---|
-| src/index.js | Arranque | Lee PORT y HOST y pone el servidor a escuchar |
-| src/app.js | Configuración | Middlewares, /health, montaje de rutas, manejo de errores |
-| src/routes/envios.routes.js | Presentación | Método HTTP + URI → función del controlador |
-| src/controllers/envios.controller.js | Presentación | Lee la petición, llama al servicio, arma la respuesta |
-| src/services/envios.service.js | Lógica de negocio | Guía única, estado inicial y fecha de registro; no conoce HTTP ni la base de datos |
-| src/repositories/envios.repository.js | Acceso a datos | Guarda y consulta (en memoria en el Taller 1) |
-| src/models/envio.js | Modelo | Atributos de la entidad, estados válidos y validación |
-| src/utils/http-error.js | Utilidad | Error con código de estado HTTP |
+Debe ver en la terminal: `ms-envios escuchando en http://127.0.0.1:3003`.
 
-## Contrato
+## Representación y atributos
 
-`cliente_id` es lo único que se guarda; el objeto `cliente` lo compondrá el servicio en el Taller 3 consultando a ms-clientes.
+Así responde `GET /envios/3`. `cliente_id` es lo único que se guarda en envios_db; el objeto `cliente` lo agrega el servicio consultando a ms-clientes cada vez que responde.
 
 ```json
 {
@@ -44,14 +68,69 @@ Prueben: http://localhost:3003/health y http://localhost:3003/envios
 }
 ```
 
-| Método | URI | Respuesta |
-|---|---|---|
-| GET | /health | 200 `{"servicio":"ms-envios","estado":"ok"}` |
-| GET | /envios | 200 arreglo de envíos |
-| GET | /envios/:id | 200 envío · 400 id inválido · 404 no existe |
-| POST | /envios | 201 envío creado + Location · 400 datos inválidos · 409 guía repetida |
+| Atributo | Tipo | ¿Obligatorio al crear? | Reglas |
+|---|---|---|---|
+| id | entero | No: lo asigna el servicio | Positivo y único |
+| numero_guia | texto | Sí | Formato LR-AAAA-NNNNNN; se guarda en mayúsculas; **único (si se repite: 409)** |
+| cliente_id | entero | Sí | Entero positivo; el cliente debe existir en ms-clientes (si no: 400) |
+| peso_kg | decimal | Sí | Mayor que 0 y hasta 5000 |
+| ciudad_destino | texto | Sí | No vacía |
+| direccion_destino | texto | Sí | No vacía |
+| estado | texto | No al crear (queda "registrado"); **sí en PUT** | Uno de: registrado, en_transito, entregado, devuelto |
+| fecha_registro | fecha | No: la asigna el servicio | Fecha del día del registro (AAAA-MM-DD); no cambia con PUT |
+| cliente | objeto | No se envía ni se guarda | Compuesto desde ms-clientes: id, nombre, ciudad (null si ms-clientes no responde) |
 
-Ejemplo de cuerpo para POST (estado y fecha_registro los asigna el servicio):
-`{"numero_guia": "LR-2026-000123", "cliente_id": 3, "peso_kg": 2.5, "ciudad_destino": "Medellín", "direccion_destino": "Carrera 43A # 1-50"}`
+## Endpoints
 
-Estados válidos: registrado, en_transito, entregado, devuelto.
+| Operación | Método | URI | Cuerpo | Respuesta exitosa | Errores posibles |
+|---|---|---|---|---|---|
+| Listar | GET | /envios | — | 200 + arreglo | — |
+| Filtrar | GET | /envios?estado=en_transito · /envios?cliente_id=1 | — | 200 + arreglo filtrado | 400 estado o cliente_id inválido |
+| Obtener | GET | /envios/:id | — | 200 + objeto | 400 id inválido · 404 |
+| Crear | POST | /envios | JSON sin id, estado ni fecha | 201 + objeto + cabecera Location | 400 · 409 |
+| Actualizar | PUT | /envios/:id | JSON completo sin id (incluye estado) | 200 + objeto actualizado | 400 · 404 · 409 |
+| Eliminar | DELETE | /envios/:id | — | 204 sin cuerpo | 400 · 404 |
+
+ms-envios no ofrece consulta por lotes (`?ids=`) porque ningún otro microservicio lo consulta. Todos los errores responden con el formato `{"error": "...", "detalles": [...]}`.
+
+**Ejemplo · crear:** `POST /envios`
+
+```json
+{
+  "numero_guia": "LR-2026-000123",
+  "cliente_id": 3,
+  "peso_kg": 2.5,
+  "ciudad_destino": "Medellín",
+  "direccion_destino": "Carrera 43A # 1-50"
+}
+```
+
+Respuesta `201 Created` con `Location: /envios/4`:
+
+```json
+{ "id": 4, "numero_guia": "LR-2026-000123", "cliente_id": 3, "peso_kg": 2.5, "ciudad_destino": "Medellín", "direccion_destino": "Carrera 43A # 1-50", "estado": "registrado", "fecha_registro": "2026-11-04", "cliente": { "id": 3, "nombre": "Ferretería La Sabana", "ciudad": "Bogotá" } }
+```
+
+**Ejemplo · listar con filtro:** `GET /envios?estado=en_transito` → `200 OK`
+
+```json
+[
+  { "id": 2, "numero_guia": "LR-2026-000002", "cliente_id": 2, "peso_kg": 340, "ciudad_destino": "Bogotá", "direccion_destino": "Calle 80 # 69-70", "estado": "en_transito", "fecha_registro": "2026-10-28", "cliente": { "id": 2, "nombre": "Textiles Antioquia S.A.S.", "ciudad": "Medellín" } }
+]
+```
+
+## Relaciones
+
+ms-envios **guarda la referencia** `cliente_id` y consultará a ms-clientes (se implementa en la semana 2, reenviando el token del usuario):
+
+| Atributo | Microservicio consultado | Para validar (al crear y actualizar) | Para componer (al consultar) | Datos que usa |
+|---|---|---|---|---|
+| cliente_id | ms-clientes | GET /clientes/:id | GET /clientes?ids=… | id, nombre, ciudad |
+
+- **Al escribir:** si el cliente no existe → 400; si ms-clientes no responde → 503.
+- **Al leer:** una sola petición `?ids=` para todos los envíos; si ms-clientes no responde, la respuesta sale igual con `"cliente": null` y `"aviso": "ms-clientes no disponible"`.
+- La dirección de ms-clientes se configura en el `.env` con `CLIENTES_URL`.
+
+## Pruebas
+
+La colección de Postman está en `docs/ms-envios.postman_collection.json` (Import en Postman).
