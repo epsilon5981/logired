@@ -1,0 +1,5 @@
+[
+  { "id": 1, "nombre": "Administrador General", "email": "admin@empresa.com", "rol": "administrador", "activo": true },
+  { "id": 2, "nombre": "Marta Ríos", "email": "marta.rios@logired.com", "rol": "despacho", "activo": true },
+  { "id": 3, "nombre": "Jorge Peña", "email": "jorge.pena@logired.com", "rol": "flota", "activo": true }
+]

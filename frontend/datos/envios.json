@@ -1,0 +1,5 @@
+[
+  { "id": 1, "numero_guia": "LR-2026-000001", "cliente_id": 1, "peso_kg": 12.5, "ciudad_destino": "Medellín", "direccion_destino": "Carrera 43A # 1-50", "estado": "entregado", "fecha_registro": "2026-10-20", "cliente": { "id": 1, "nombre": "Distribuidora El Valle", "ciudad": "Cali" } },
+  { "id": 2, "numero_guia": "LR-2026-000002", "cliente_id": 2, "peso_kg": 340, "ciudad_destino": "Bogotá", "direccion_destino": "Calle 80 # 69-70", "estado": "en_transito", "fecha_registro": "2026-10-28", "cliente": { "id": 2, "nombre": "Textiles Antioquia S.A.S.", "ciudad": "Medellín" } },
+  { "id": 3, "numero_guia": "LR-2026-000003", "cliente_id": 1, "peso_kg": 2.5, "ciudad_destino": "Cali", "direccion_destino": "Avenida 6N # 23-45", "estado": "registrado", "fecha_registro": "2026-11-03", "cliente": { "id": 1, "nombre": "Distribuidora El Valle", "ciudad": "Cali" } }
+]

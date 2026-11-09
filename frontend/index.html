@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LogiRed · Iniciar sesión</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body class="login">
+  <form class="tarjeta" id="formulario" novalidate>
+    <div class="marca"><span class="marca-logo">LR</span><span>LogiRed</span></div>
+    <h1>Gestión de envíos</h1>
+
+    <!-- Inicio de sesión real (Taller 3): email y contraseña contra ms-usuarios -->
+    <div id="modo-real" hidden>
+      <div style="display:grid;gap:12px">
+        <label>Correo electrónico <input name="email" type="email" autocomplete="username"></label>
+        <label>Contraseña <input name="password" type="password" autocomplete="current-password"></label>
+      </div>
+    </div>
+
+    <!-- Inicio de sesión simulado (semanas 1 y 2): se elige el rol -->
+    <div id="modo-ejemplo" hidden>
+      <div class="roles">
+        <label class="opcion-rol"><input type="radio" name="rol" value="administrador" checked>
+          <span>Administrador<small>Panel, usuarios, clientes y envíos</small></span></label>
+        <label class="opcion-rol"><input type="radio" name="rol" value="despacho">
+          <span>Despacho<small>Registra envíos y atiende clientes</small></span></label>
+        <label class="opcion-rol"><input type="radio" name="rol" value="flota">
+          <span>Flota<small>Consulta los envíos por despachar</small></span></label>
+      </div>
+    </div>
+
+    <p class="errores" id="error"></p>
+    <button class="boton" type="submit">Iniciar sesión</button>
+  </form>
+
+  <script src="js/config.js"></script>
+  <script src="js/sesion.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    const NOMBRES = { administrador: 'Administrador General', despacho: 'Marta Ríos', flota: 'Jorge Peña' };
+    document.getElementById(CONFIG.USAR_DATOS_EJEMPLO ? 'modo-ejemplo' : 'modo-real').hidden = false;
+
+    document.getElementById('formulario').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      try {
+        let usuario;
+        if (CONFIG.USAR_DATOS_EJEMPLO) {
+          const rol = f.rol.value;
+          usuario = { id: 0, nombre: NOMBRES[rol], rol };
+          Sesion.guardar('token-simulado', usuario);
+        } else {
+          const r = await Api.login(f.email.value.trim(), f.password.value);
+          usuario = r.usuario;
+          Sesion.guardar(r.token, usuario);
+        }
+        location.href = ROLES[usuario.rol].inicio;
+      } catch (error) {
+        document.getElementById('error').textContent = error.status === 401
+          ? 'Correo o contraseña incorrectos' : error.message;
+      }
+    });
+  </script>
+</body>
+</html>

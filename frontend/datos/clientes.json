@@ -1,0 +1,5 @@
+[
+  { "id": 1, "nombre": "Distribuidora El Valle", "nit": "900123456-7", "email": "compras@elvalle.com.co", "telefono": "6023456789", "ciudad": "Cali", "direccion": "Calle 15 # 32-40", "activo": true },
+  { "id": 2, "nombre": "Textiles Antioquia S.A.S.", "nit": "901234567-1", "email": "logistica@textilesantioquia.co", "telefono": "6044412233", "ciudad": "Medellín", "direccion": "Carrera 50 # 10-25", "activo": true },
+  { "id": 3, "nombre": "Ferretería La Sabana", "nit": "830045678-2", "email": "pedidos@lasabana.com", "telefono": "6017654321", "ciudad": "Bogotá", "direccion": "Avenida 68 # 22-15", "activo": false }
+]
