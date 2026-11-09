@@ -1,57 +1,64 @@
 // =====================================================================
-// CAPA DE ACCESO A DATOS (repositorio)
+// CAPA DE ACCESO A DATOS (repositorio) · versión MySQL
 // Única capa que sabe DÓNDE se guardan los datos.
-// Versión en memoria (se pierden al reiniciar).
-// Todas las funciones son async (devuelven promesas) para que el cambio
-// a una base de datos real no obligue a modificar la capa de servicio.
+// Las funciones conservan el mismo nombre, parámetros y tipo de resultado
+// que la versión en memoria: por eso el servicio no cambió.
+// Todas las consultas usan parámetros (?) para evitar la inyección SQL.
 // =====================================================================
-const clientes = [
-  { id: 1, nombre: 'Distribuidora El Valle', nit: '900123456-7', email: 'compras@elvalle.com.co', telefono: '6023456789', ciudad: 'Cali', direccion: 'Calle 15 # 32-40', activo: true },
-  { id: 2, nombre: 'Textiles Antioquia S.A.S.', nit: '901234567-1', email: 'logistica@textilesantioquia.co', telefono: '6044412233', ciudad: 'Medellín', direccion: 'Carrera 50 # 10-25', activo: true },
-  { id: 3, nombre: 'Ferretería La Sabana', nit: '830045678-2', email: 'pedidos@lasabana.com', telefono: '6017654321', ciudad: 'Bogotá', direccion: 'Avenida 68 # 22-15', activo: false },
-];
-let siguienteId = 4;
+const pool = require('../db');
+
+// MySQL guarda BOOLEAN como 0/1: el repositorio lo traduce al formato del contrato
+function aCliente(fila) {
+  return { ...fila, activo: Boolean(fila.activo) };
+}
 
 async function findAll(filtros = {}) {
-  let resultado = clientes;
+  let sql = 'SELECT * FROM clientes';
+  const condiciones = [];
+  const valores = [];
   if (filtros.ciudad) {
-    const ciudad = filtros.ciudad.toLowerCase();
-    resultado = resultado.filter((c) => c.ciudad.toLowerCase() === ciudad);
+    condiciones.push('ciudad = ?');
+    valores.push(filtros.ciudad);
   }
-  if (filtros.ids) {
-    resultado = resultado.filter((c) => filtros.ids.includes(c.id));
+  if (filtros.ids) {                              // ?ids=1,2,3 -> WHERE id IN (1, 2, 3)
+    condiciones.push('id IN (?)');
+    valores.push(filtros.ids);
   }
-  return resultado;
+  if (condiciones.length > 0) sql += ' WHERE ' + condiciones.join(' AND ');
+  const [filas] = await pool.query(sql + ' ORDER BY id', valores);
+  return filas.map(aCliente);
 }
 
 async function findById(id) {
-  return clientes.find((c) => c.id === id) || null;
+  const [filas] = await pool.query('SELECT * FROM clientes WHERE id = ?', [id]);
+  return filas.length > 0 ? aCliente(filas[0]) : null;
 }
 
 async function findByNit(nit) {
-  return clientes.find((c) => c.nit === nit) || null;
+  const [filas] = await pool.query('SELECT * FROM clientes WHERE nit = ?', [nit]);
+  return filas.length > 0 ? aCliente(filas[0]) : null;
 }
 
 async function create(cliente) {
-  const nuevo = { id: siguienteId++, ...cliente };
-  clientes.push(nuevo);
-  return nuevo;
+  const [resultado] = await pool.query(
+    'INSERT INTO clientes (nombre, nit, email, telefono, ciudad, direccion, activo) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [cliente.nombre, cliente.nit, cliente.email, cliente.telefono, cliente.ciudad, cliente.direccion, cliente.activo]);
+  return findById(resultado.insertId);           // MySQL devuelve el id generado
 }
 
 // Reemplaza los datos del cliente; devuelve el cliente actualizado o null si no existe
 async function update(id, cliente) {
-  const i = clientes.findIndex((c) => c.id === id);
-  if (i === -1) return null;
-  clientes[i] = { id, ...cliente };
-  return clientes[i];
+  const [resultado] = await pool.query(
+    'UPDATE clientes SET nombre = ?, nit = ?, email = ?, telefono = ?, ciudad = ?, direccion = ?, activo = ? WHERE id = ?',
+    [cliente.nombre, cliente.nit, cliente.email, cliente.telefono, cliente.ciudad, cliente.direccion, cliente.activo, id]);
+  if (resultado.affectedRows === 0) return null; // ninguna fila con ese id
+  return findById(id);
 }
 
 // Elimina el cliente; devuelve true si existía
 async function remove(id) {
-  const i = clientes.findIndex((c) => c.id === id);
-  if (i === -1) return false;
-  clientes.splice(i, 1);
-  return true;
+  const [resultado] = await pool.query('DELETE FROM clientes WHERE id = ?', [id]);
+  return resultado.affectedRows > 0;
 }
 
 module.exports = { findAll, findById, findByNit, create, update, remove };
