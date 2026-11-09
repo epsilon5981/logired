@@ -20,7 +20,7 @@ y abran http://localhost:5500. También sirve la extensión *Live Server* de VS 
 | js/api.js | Todas las peticiones a la API (o a los datos de ejemplo) y el envío del token |
 | js/sesion.js | Sesión, páginas por rol, permisos de escritura y encabezado común |
 | js/ui.js | Formularios en diálogo, confirmaciones y mensajes |
-| js/inicio.js, envios.js | Panel del administrador y lista de envíos (inicio de despacho y flota) |
+| js/inicio.js, envios.js, clientes.js, usuarios.js | Una página por pantalla del mapa de navegación |
 | datos/*.json | Datos de ejemplo con la misma forma que los contratos (los envíos traen su objeto cliente) |
 
 ## Páginas por rol

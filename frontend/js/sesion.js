@@ -12,7 +12,8 @@ const ROLES = {
 const PAGINAS = [
   { href: 'inicio.html', texto: 'Panel', roles: ['administrador'] },
   { href: 'envios.html', texto: 'Envíos', roles: ['administrador', 'despacho', 'flota'] },
-  // Semana 2: páginas de clientes y usuarios
+  { href: 'clientes.html', texto: 'Clientes', roles: ['administrador', 'despacho'] },
+  { href: 'usuarios.html', texto: 'Usuarios', roles: ['administrador'] },
 ];
 
 // Roles que pueden crear, modificar y eliminar (tabla de permisos del Taller 1).

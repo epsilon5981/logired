@@ -5,7 +5,7 @@
 // =====================================================================
 const ESTADOS = { registrado: 'Registrado', en_transito: 'En tránsito', entregado: 'Entregado', devuelto: 'Devuelto' };
 const usuario = Sesion.exigir('envios.html');
-const puedeEscribir = false;   // semana 2: Sesion.puedeEscribir('envios') muestra crear, editar y eliminar
+const puedeEscribir = Sesion.puedeEscribir('envios');
 let filtro = usuario?.rol === 'flota' ? 'por_despachar' : '';
 
 if (usuario) {
