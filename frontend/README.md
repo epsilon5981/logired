@@ -2,22 +2,22 @@
 
 Interfaz web de LogiRed con HTML, CSS y JavaScript sin frameworks: archivos estáticos que Apache podrá servir en el Taller 3.
 
-## Cómo verlo en su PC
+## Cómo se publica (Taller 3)
 
-Los datos de ejemplo se leen con `fetch`, así que las páginas deben abrirse desde un servidor local (no con doble clic). En la carpeta del repositorio:
+El frontend se sirve desde Apache en servidor2, en el mismo host virtual que el API Gateway (`http://app.<dominio>`). Por eso todas las llamadas usan la ruta relativa `/api/<recurso>` y no hace falta CORS.
 
 ```
-npx serve frontend -l 5500
+sudo cp -r /srv/logired/app/frontend/* /var/www/app/
 ```
 
-y abran http://localhost:5500. También sirve la extensión *Live Server* de VS Code.
+Para volver a los datos de ejemplo (sin backend), cambie `USAR_DATOS_EJEMPLO` a `true` en `js/config.js` y abra la carpeta con un servidor local (`npx serve frontend -l 5500`).
 
 ## Organización
 
 | Archivo | Responsabilidad |
 |---|---|
 | js/config.js | **Único lugar que cambia en el Taller 3**: `USAR_DATOS_EJEMPLO` y `API_URL` |
-| js/api.js | Todas las peticiones a la API (o a los datos de ejemplo) y el envío del token |
+| js/api.js | Todas las peticiones a la API: agrega el token, maneja 401 (vuelve al inicio de sesión) y convierte 400/403/409/503 en mensajes |
 | js/sesion.js | Sesión, páginas por rol, permisos de escritura y encabezado común |
 | js/ui.js | Formularios en diálogo, confirmaciones y mensajes |
 | js/inicio.js, envios.js, clientes.js, usuarios.js | Una página por pantalla del mapa de navegación |

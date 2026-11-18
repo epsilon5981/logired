@@ -1,0 +1,15 @@
+# /etc/systemd/system/ms-envios.service
+# Microservicio de envíos de LogiRed como servicio del sistema (puerto 3003, solo 127.0.0.1)
+[Unit]
+Description=Microservicio envíos - LogiRed
+After=network.target
+
+[Service]
+User=nodeapps
+Group=nodeapps
+WorkingDirectory=/srv/logired/app/ms-envios
+ExecStart=/usr/bin/node --env-file=.env src/index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

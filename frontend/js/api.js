@@ -13,6 +13,20 @@ class ErrorApi extends Error {
 }
 
 // ---------- Modo real: peticiones HTTP al API Gateway ----------
+// Mensaje para los códigos que pueden llegar sin cuerpo JSON (por ejemplo, el
+// 503 que genera Apache cuando el microservicio está detenido).
+const MENSAJES = {
+  502: 'El servicio no respondió correctamente (502)',
+  503: 'Servicio no disponible en este momento (503). Intente más tarde',
+  504: 'El servicio tardó demasiado en responder (504)',
+};
+
+// Lee el cuerpo como JSON si se puede; si no (HTML de Apache, vacío), devuelve null
+async function leerCuerpo(respuesta) {
+  const texto = await respuesta.text();
+  try { return texto ? JSON.parse(texto) : null; } catch { return null; }
+}
+
 async function pedir(metodo, ruta, cuerpo) {
   const respuesta = await fetch(`${CONFIG.API_URL}${ruta}`, {
     method: metodo,
@@ -22,10 +36,15 @@ async function pedir(metodo, ruta, cuerpo) {
     },
     body: cuerpo ? JSON.stringify(cuerpo) : undefined,
   });
-  if (respuesta.status === 401) Sesion.cerrar();            // token vencido o inválido
+  if (respuesta.status === 401) {                           // sin sesión o token vencido
+    Sesion.cerrar();
+    throw new ErrorApi(401, { error: 'La sesión venció. Inicie sesión de nuevo' });
+  }
   if (respuesta.status === 204) return null;
-  const datos = await respuesta.json();
-  if (!respuesta.ok) throw new ErrorApi(respuesta.status, datos);
+  const datos = await leerCuerpo(respuesta);
+  if (!respuesta.ok) {                                      // 400, 403, 404, 409, 503…
+    throw new ErrorApi(respuesta.status, datos || { error: MENSAJES[respuesta.status] });
+  }
   return datos;
 }
 
@@ -90,8 +109,8 @@ const Api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    const datos = await r.json();
-    if (!r.ok) throw new ErrorApi(r.status, datos);
+    const datos = await leerCuerpo(r);
+    if (!r.ok) throw new ErrorApi(r.status, datos || { error: MENSAJES[r.status] });
     return datos;                                             // { token, usuario }
   },
   listar: (recurso, query = '') =>

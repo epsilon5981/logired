@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "ms-clientes",
-    "description": "Pruebas de ms-clientes (LogiRed). Base: http://localhost:3002. Ejecute primero la carpeta 0 con ms-usuarios corriendo para guardar los tokens.",
+    "description": "Pruebas de ms-clientes (LogiRed). Base: http://localhost:3002 (en el PC) o http://app.<dominio>/api (a través del gateway); cambie base_url y usuarios_url. Ejecute primero la carpeta 0 con ms-usuarios corriendo para guardar los tokens.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -18,7 +18,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "http://localhost:3001/usuarios/login",
+            "url": "{{usuarios_url}}/usuarios/login",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"admin@empresa.com\",\n  \"password\": \"Admin2026*\"\n}",
@@ -54,7 +54,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "http://localhost:3001/usuarios",
+            "url": "{{usuarios_url}}/usuarios",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Marta Ríos\",\n  \"email\": \"marta.rios@logired.com\",\n  \"rol\": \"despacho\",\n  \"password\": \"Despacho2026*\"\n}",
@@ -76,7 +76,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "http://localhost:3001/usuarios",
+            "url": "{{usuarios_url}}/usuarios",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Jorge Peña\",\n  \"email\": \"jorge.pena@logired.com\",\n  \"rol\": \"flota\",\n  \"password\": \"Flota2026*\"\n}",
@@ -98,7 +98,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "http://localhost:3001/usuarios/login",
+            "url": "{{usuarios_url}}/usuarios/login",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"marta.rios@logired.com\",\n  \"password\": \"Despacho2026*\"\n}",
@@ -134,7 +134,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "http://localhost:3001/usuarios/login",
+            "url": "{{usuarios_url}}/usuarios/login",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"jorge.pena@logired.com\",\n  \"password\": \"Flota2026*\"\n}",
@@ -473,6 +473,10 @@
     {
       "key": "base_url",
       "value": "http://localhost:3002"
+    },
+    {
+      "key": "usuarios_url",
+      "value": "http://localhost:3001"
     },
     {
       "key": "nuevo_id",

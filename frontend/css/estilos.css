@@ -56,6 +56,7 @@ main { max-width: 1150px; margin: 0 auto; padding: 28px 24px 48px; }
 .herramientas { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .tarjeta { background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); }
 .aviso-modo { background: var(--ambar-suave); color: #6b4a12; border-radius: 8px; padding: 8px 14px; font-size: .85rem; margin-bottom: 16px; }
+.aviso-error { background: var(--rojo-suave); color: var(--rojo); font-weight: 600; }
 
 /* ---------- Botones y formularios ---------- */
 .boton {

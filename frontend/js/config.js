@@ -1,11 +1,13 @@
 // =====================================================================
-// CONFIGURACIÓN DEL FRONTEND · el ÚNICO lugar que cambia en el Taller 3
+// CONFIGURACIÓN DEL FRONTEND · el único lugar que cambia entre ambientes
 // =====================================================================
 const CONFIG = {
-  // true  = datos de ejemplo (carpeta datos/) e inicio de sesión simulado
-  // false = peticiones reales al API Gateway con el token de ms-usuarios
-  USAR_DATOS_EJEMPLO: true,
+  // false = peticiones reales al API Gateway con el token de ms-usuarios (Taller 3)
+  // true  = datos de ejemplo (carpeta datos/) e inicio de sesión simulado (Taller 2)
+  USAR_DATOS_EJEMPLO: false,
 
-  // Dirección del API Gateway (Apache en servidor2 reenvía /api/<recurso>)
+  // Dirección de la API: ruta relativa, porque el frontend y el gateway se sirven
+  // desde el mismo nombre (http://app.<dominio>). Apache reenvía /api/<recurso>
+  // al microservicio que corresponde.
   API_URL: '/api',
 };

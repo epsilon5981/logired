@@ -1,0 +1,15 @@
+# /etc/systemd/system/ms-usuarios.service
+# Microservicio de usuarios de LogiRed como servicio del sistema (puerto 3001, solo 127.0.0.1)
+[Unit]
+Description=Microservicio usuarios - LogiRed
+After=network.target
+
+[Service]
+User=nodeapps
+Group=nodeapps
+WorkingDirectory=/srv/logired/app/ms-usuarios
+ExecStart=/usr/bin/node --env-file=.env src/index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

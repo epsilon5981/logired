@@ -42,6 +42,11 @@ async function cargar() {
     let envios = await Api.listar('envios', query);
     if (filtro === 'por_despachar') envios = envios.filter((e) => e.estado === 'registrado' || e.estado === 'en_transito');
     else if (filtro) envios = envios.filter((e) => e.estado === filtro);
+    // Respuesta compuesta con aviso: ms-envios respondió, pero ms-clientes no
+    const aviso = envios.find((e) => e.aviso)?.aviso;
+    document.getElementById('aviso').innerHTML = avisoModo() + (aviso
+      ? `<div class="aviso-modo aviso-error">⚠ ${escapar(aviso)}: los envíos se muestran sin los datos del cliente.</div>`
+      : '');
     pintarTabla(envios);
   } catch (error) {
     mostrarMensaje(textoError(error), 'error');
@@ -95,16 +100,20 @@ function detalle(e) {
 }
 
 async function formulario(envio) {
-  let clientes;
+  // La lista de clientes viene de ms-clientes. Si no responde, el formulario abre
+  // igual con un campo numérico: al guardar, ms-envios responderá 503.
+  let campoCliente;
   try {
-    clientes = await Api.listar('clientes');
+    const clientes = await Api.listar('clientes');
+    campoCliente = { nombre: 'cliente_id', etiqueta: 'Cliente', tipo: 'select-numero', vacio: 'Seleccione…',
+      opciones: clientes.map((c) => ({ valor: c.id, texto: `${c.nombre} · ${c.ciudad}` })) };
   } catch (error) {
-    return mostrarMensaje(textoError(error), 'error');
+    mostrarMensaje(`No se pudo cargar la lista de clientes: ${textoError(error)}`, 'error');
+    campoCliente = { nombre: 'cliente_id', etiqueta: 'Id del cliente', tipo: 'number' };
   }
   const campos = [
     { nombre: 'numero_guia', etiqueta: 'Número de guía', ayuda: 'LR-2026-000123' },
-    { nombre: 'cliente_id', etiqueta: 'Cliente', tipo: 'select-numero', vacio: 'Seleccione…',
-      opciones: clientes.map((c) => ({ valor: c.id, texto: `${c.nombre} · ${c.ciudad}` })) },
+    campoCliente,
     { nombre: 'peso_kg', etiqueta: 'Peso (kg)', tipo: 'number', paso: '0.01' },
     { nombre: 'ciudad_destino', etiqueta: 'Ciudad de destino' },
     { nombre: 'direccion_destino', etiqueta: 'Dirección de destino', ancho: true },
